@@ -6,6 +6,7 @@ package org.mockito.internal.creation.bytebuddy;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -561,7 +562,40 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                             super.visitInsn(Opcodes.DUP);
                             Label noSpy = new Label();
                             super.visitJumpInsn(Opcodes.IFNULL, noSpy);
+                            super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(System.class), "out", Type.getDescriptor(PrintStream.class));
+                            super.visitLdcInsn(instrumentedType.toString());
+                            super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(PrintStream.class), "println", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)), false);
+                            super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(System.class), "out", Type.getDescriptor(PrintStream.class));
+                            super.visitVarInsn(Opcodes.ALOAD, 0);
+                            super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(PrintStream.class), "println", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
                             for (FieldDescription field : fields) {
+                                super.visitInsn(Opcodes.DUP);
+                                super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(System.class), "out", Type.getDescriptor(PrintStream.class));
+                                super.visitLdcInsn(field.toString());
+                                super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(PrintStream.class), "println", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class)), false);
+                                super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(System.class), "out", Type.getDescriptor(PrintStream.class));
+                                super.visitInsn(Opcodes.DUP_X1);
+                                super.visitInsn(Opcodes.POP);
+                                super.visitFieldInsn(
+                                    Opcodes.GETFIELD,
+                                    instrumentedType.getInternalName(),
+                                    field.getInternalName(),
+                                    field.getDescriptor());
+                                Class<?> t;
+                                if (field.getType().isPrimitive()) {
+                                    if (field.getType().represents(long.class)) {
+                                        t = long.class;
+                                    } else if (field.getType().represents(float.class)) {
+                                        t = float.class;
+                                    } else if (field.getType().represents(double.class)) {
+                                        t = double.class;
+                                    } else {
+                                        t = int.class;
+                                    }
+                                } else {
+                                    t = Object.class;
+                                }
+                                super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(PrintStream.class), "println", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(t)), false);
                                 super.visitInsn(Opcodes.DUP);
                                 super.visitFieldInsn(
                                         Opcodes.GETFIELD,
@@ -579,6 +613,14 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                                         instrumentedType.getInternalName(),
                                         field.getInternalName(),
                                         field.getDescriptor());
+                                super.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(System.class), "out", Type.getDescriptor(PrintStream.class));
+                                super.visitVarInsn(Opcodes.ALOAD, 0);
+                                super.visitFieldInsn(
+                                    Opcodes.GETFIELD,
+                                    instrumentedType.getInternalName(),
+                                    field.getInternalName(),
+                                    field.getDescriptor());
+                                super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(PrintStream.class), "println", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(t)), false);
                             }
                             super.visitLabel(noSpy);
                             if (implementationContext
@@ -627,7 +669,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                                                 6 + parameter.getType().getStackSize().getSize());
                                 prequel = Math.max(prequel, 8);
                             }
-                            super.visitMaxs(Math.max(maxStack, prequel), maxLocals);
+                            super.visitMaxs(Math.max(maxStack, prequel) + 4, maxLocals);
                         }
                     };
                 }
