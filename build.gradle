@@ -1,6 +1,11 @@
 buildscript {
     repositories {
         mavenLocal() //for local testing of mockito-release-tools
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url "https://repo.spring.io/plugins-release" }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        mavenCentral()
         google()
         maven { url 'https://plugins.gradle.org/m2/' }
     }
@@ -49,6 +54,11 @@ apply from: 'gradle/dependencies.gradle'
 
 allprojects { proj ->
     repositories {
+        mavenCentral()
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url "https://repo.spring.io/plugins-release" }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
         mavenCentral()
         google()
     }
